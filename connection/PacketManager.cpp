@@ -10,7 +10,7 @@ void PacketManager::read_exact(size_t count) {
     while (count > 0) {
         int c = getchar_timeout_us(1000); // vár max 1ms-ot
         if (c != PICO_ERROR_TIMEOUT) {
-            buffer.write_uint8(static_cast<uint8_t>(c));
+            //buffer.write_uint8(static_cast<uint8_t>(c));
             count--;
         }
     }

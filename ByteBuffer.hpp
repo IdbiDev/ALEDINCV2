@@ -1,77 +1,107 @@
 #pragma once
-#include <vector>
 #include <cstdint>
 #include <cstring>
 
 class ByteBuffer {
 public:
-    ByteBuffer() : position(0) {
-        buffer.reserve(256); // Reserve space to avoid reallocations
+    static constexpr size_t FIXED_CAPACITY = 256;
+
+    ByteBuffer()
+        : buffer(small), capacity(FIXED_CAPACITY), size(0), position(0), usingHeap(false) {}
+
+    ~ByteBuffer() {
+        release_heap();
     }
 
-    ByteBuffer(const std::vector<uint8_t>& data) : buffer(data), position(0) {
-        buffer.reserve(256); // Still allow some growth
-    }
-
+    // === Write ===
     void write_uint8(uint8_t value) {
-        buffer.push_back(value);
+        ensure_capacity(size + 1);
+        buffer[size++] = value;
     }
 
     void write_uint16(uint16_t value) {
-        buffer.push_back(value & 0xFF);
-        buffer.push_back((value >> 8) & 0xFF);
+        ensure_capacity(size + 2);
+        buffer[size++] = value & 0xFF;
+        buffer[size++] = (value >> 8) & 0xFF;
     }
 
-    void write_bytes(const std::vector<uint8_t>& data) {
-        buffer.insert(buffer.end(), data.begin(), data.end());
+    void write_bytes(const uint8_t* data, size_t length) {
+        ensure_capacity(size + length);
+        std::memcpy(buffer + size, data, length);
+        size += length;
     }
 
+    // === Read ===
     uint8_t read_uint8() {
-        ensure_available(1);
-        return buffer[position++];
+        return (position < size) ? buffer[position++] : 0;
     }
 
     uint16_t read_uint16() {
-        ensure_available(2);
-        uint16_t result = buffer[position] | (buffer[position + 1] << 8);
-        position += 2;
-        return result;
+        uint16_t lo = read_uint8();
+        uint16_t hi = read_uint8();
+        return lo | (hi << 8);
     }
 
-    std::vector<uint8_t> read_bytes(size_t length) {
-        ensure_available(length);
-        std::vector<uint8_t> result(buffer.begin() + position, buffer.begin() + position + length);
-        position += length;
-        return result;
+    void read_bytes(uint8_t* dest, size_t length) {
+        if (position + length <= size) {
+            std::memcpy(dest, buffer + position, length);
+            position += length;
+        }
+    }
+    ByteBuffer read_bytes(size_t length) {
+        ByteBuffer out;
+        if (position + length <= size) {
+            out.write_bytes(buffer + position, length);
+            position += length;
+        }
+        return out;
     }
 
-    const std::vector<uint8_t>& data() const {
-        return buffer;
-    }
+    // === Buffer Management ===
+    const uint8_t* data() const { return buffer; }
+    size_t data_size() const { return size; }
+    size_t remaining() const { return size - position; }
+
+    void reset() { position = 0; }
 
     void clear() {
-        buffer.clear();
-        buffer.reserve(256); // Re-reserve after clear
+        std::memset(buffer, 0, capacity);
+        size = 0;
         position = 0;
-    }
 
-    size_t size() const {
-        return buffer.size();
-    }
-
-    size_t remaining() const {
-        return buffer.size() - position;
-    }
-
-    void reset() {
-        position = 0;
+        if (usingHeap) {
+            release_heap();
+            buffer = small;
+            capacity = FIXED_CAPACITY;
+            usingHeap = false;
+        }
     }
 
 private:
-    std::vector<uint8_t> buffer;
+    uint8_t small[FIXED_CAPACITY];
+    uint8_t* buffer;
+    size_t capacity;
+    size_t size;
     size_t position;
+    bool usingHeap;
 
-    void ensure_available(size_t size) {
-        return;
+    void ensure_capacity(size_t new_cap) {
+        if (new_cap <= capacity) return;
+
+        size_t new_capacity = (new_cap * 3) / 2;
+        uint8_t* new_buffer = new uint8_t[new_capacity];
+        std::memcpy(new_buffer, buffer, size);
+
+        if (usingHeap) delete[] buffer;
+        buffer = new_buffer;
+        capacity = new_capacity;
+        usingHeap = true;
+    }
+
+    void release_heap() {
+        if (usingHeap && buffer) {
+            delete[] buffer;
+            buffer = nullptr;
+        }
     }
 };
