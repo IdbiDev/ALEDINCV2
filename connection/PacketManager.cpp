@@ -1,7 +1,7 @@
 #include "PacketManager.hpp"
 #include "pico/stdlib.h"
 #include <cstring>
-
+#include <stdio.h>
 
 PacketManager::PacketManager() {
     buffer = ByteBuffer();
@@ -27,4 +27,31 @@ bool PacketManager::process(Packet& outPacket) {
     outPacket.data = buffer.read_bytes(payloadSize - 1);
     buffer.clear();
     return true;
+}
+
+void PacketManager::send_packet(const Packet& dataPacket) {
+    ByteBuffer newBuffer; //wtf is this cpp
+
+    uint16_t payloadLength = dataPacket.data.data_size() + 1;  // +1 for the packet ID
+
+    newBuffer.write_uint16(0xABCD);                              // Packet header
+    newBuffer.write_uint16(payloadLength);                       // Payload size
+    newBuffer.write_uint8(dataPacket.id);                        // Packet type
+    newBuffer.write_bytes(dataPacket.data.data(), dataPacket.data.data_size()); // Payload
+    fwrite(newBuffer.data(), 1, newBuffer.data_size(), stdout);  
+}
+void PacketManager::complete() {
+    Packet packet;
+    packet.id = READY;
+    packet.data.write_uint8(READY);
+    send_packet(packet);
+    packet.data.clear();
+    
+}
+void PacketManager::complete_error(const uint8_t errorCode){
+    Packet packet;
+    packet.id = ERROR;
+    packet.data.write_uint8(errorCode);
+    send_packet(packet);
+    packet.data.clear();
 }

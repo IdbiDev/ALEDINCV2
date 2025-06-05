@@ -13,21 +13,22 @@ void blink_pin_forever(PIO pio, uint sm, uint offset, uint pin, uint freq) {
 int main() {
     stdio_init_all();
     sleep_ms(2000); // allow USB connection to establish
-    printf("Hello world!\n");
+    //printf("Hello world!\n");
 
     PacketManager packetManager;
     Packet packet;
     while (true) {
-        if(packetManager.process(packet)){
-            switch (packet.id)
-            {
-                case TEST_CONNECTION:
-                    
-                    break;
-                
-                default:
-                    break;
+        if(packetManager.process(packet)) {
+            if(packet.id == TEST_CONNECTION) {
+                if(packet.data.read_uint16() != 0xABCD) {
+                    packetManager.complete_error(DRIVER_ERROR_INVALID_TEST_MAGIC);
+                    continue;
+                }
+                packetManager.complete();
+                continue;
             }
+            //If packed processed then we return READY
+            packetManager.complete();
         }
         //sleep_ms(500);
     }

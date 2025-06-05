@@ -17,6 +17,12 @@ struct Packet {
 };
 #pragma pack(pop)
 
+
+//Led Types
+constexpr uint8_t LED_TYPE_RGB = 0x0;
+constexpr uint8_t LED_TYPE_GRB = 0x1;
+
+//Packets
 constexpr uint8_t TEST_CONNECTION = 0;
 constexpr uint8_t READY = 1;
 constexpr uint8_t UPDATE_LED_STRIP_POWER = 2;
@@ -29,3 +35,6 @@ constexpr uint8_t HOST_REQUEST_SETTINGS = 10;
 constexpr uint8_t HOST_SEND_SETTINGS = 12;
 constexpr uint8_t CONTROLLER_SEND_SETTINGS = 7;
 constexpr uint8_t CONTROLLER_SEND_DEBUG_MESSAGE = 9;
+
+//ERRORS
+constexpr uint8_t DRIVER_ERROR_INVALID_TEST_MAGIC = 0x1;
