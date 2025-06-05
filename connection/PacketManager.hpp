@@ -1,23 +1,14 @@
 #pragma once
 #include <vector>
 #include <cstdint>
+#include "Utils.hpp"
+#include "ByteBuffer.hpp"
 
 class PacketManager {
 public:
-    struct Packet {
-        uint8_t id;
-        std::vector<uint8_t> data;
-    };
-
     PacketManager();
-
     bool process(Packet& outPacket); 
-    void reset();
-
+    void read_exact(size_t count);
 private:
-    std::vector<uint8_t> buffer;
-    static constexpr uint16_t MAGIC = 0xABCD;
-
-    void read_serial();
-    bool try_extract_packet(Packet& outPacket);
+    ByteBuffer buffer;
 };

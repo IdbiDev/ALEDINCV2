@@ -2,49 +2,29 @@
 #include "pico/stdlib.h"
 #include <cstring>
 
+
 PacketManager::PacketManager() {
-    buffer.reserve(256);
+    buffer = ByteBuffer();
 }
-
-void PacketManager::read_serial() {
-    int c = getchar_timeout_us(0);
-    while (c != PICO_ERROR_TIMEOUT) {
-        buffer.push_back(static_cast<uint8_t>(c));
-        c = getchar_timeout_us(0);
+void PacketManager::read_exact(size_t count) {
+    while (count > 0) {
+        int c = getchar_timeout_us(1000); // vár max 1ms-ot
+        if (c != PICO_ERROR_TIMEOUT) {
+            buffer.write_uint8(static_cast<uint8_t>(c));
+            count--;
+        }
     }
 }
-
-bool PacketManager::try_extract_packet(Packet& outPacket) {
-    if (buffer.size() < 5)
-        return false;
-
-    // Read header
-    uint16_t magic = buffer[0] | (buffer[1] << 8);
-    if (magic != MAGIC) {
-        // Invalid magic, shift buffer
-        buffer.erase(buffer.begin());
-        return false;
-    }
-
-    uint16_t length = buffer[2] | (buffer[3] << 8);
-
-    if (buffer.size() < 4 + length)
-        return false; // Not enough data yet
-
-    // Extract packet
-    outPacket.id = buffer[4];
-    outPacket.data.assign(buffer.begin() + 5, buffer.begin() + 4 + length);
-
-    // Remove packet from buffer
-    buffer.erase(buffer.begin(), buffer.begin() + 4 + length);
-    return true;
-}
-
 bool PacketManager::process(Packet& outPacket) {
-    read_serial();
-    return try_extract_packet(outPacket);
-}
 
-void PacketManager::reset() {
+    read_exact(4);
+    if(buffer.read_uint16() != 0xABCD){//magic Number
+        return false;
+    }
+    uint16_t payloadSize = buffer.read_uint16();
+    read_exact(payloadSize);//payload size
+    outPacket.id = buffer.read_uint8();
+    outPacket.data = buffer.read_bytes(payloadSize - 1);
     buffer.clear();
+    return true;
 }

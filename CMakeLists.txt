@@ -37,7 +37,15 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(ALEDINCV2 main.cpp )
+file(GLOB_RECURSE SOURCES
+    ${CMAKE_CURRENT_LIST_DIR}/main.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/connection/*.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/led/*.cpp
+)
+
+add_executable(ALEDINCV2
+    ${SOURCES}
+)
 
 pico_set_program_name(ALEDINCV2 "ALEDINCV2")
 pico_set_program_version(ALEDINCV2 "0.1")
@@ -64,6 +72,12 @@ target_link_libraries(ALEDINCV2
         hardware_pio
         pico_cyw43_arch_none
         )
+target_compile_options(ALEDINCV2 PRIVATE -fno-exceptions -fno-rtti -fno-threadsafe-statics)
+target_link_options(ALEDINCV2 PRIVATE -nostartfiles -Wl,--undefined=__dso_handle)
 
 #pico_add_extra_outputs(ALEDINCV2)
 #pico_add_binary(ALEDINCV2)
+#file(GLOB_RECURSE ALL_SOURCES CONFIGURE_DEPENDS
+#    ${CMAKE_SOURCE_DIR}/*.cpp
+#)
+#target_sources(ALEDINCV2 PRIVATE ${ALL_SOURCES})
