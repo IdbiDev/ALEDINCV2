@@ -33,6 +33,10 @@ void LedStrip::release() {
     pio = nullptr;
     sm = -1;
 }
+void LedStrip::re_init() {
+    release();
+    allocate();
+}
 
 void LedStrip::show(bool force) {
     if (!power && !force) return;
@@ -77,7 +81,7 @@ void LedStrip::fill(Color c) {
     for (int i = 0; i < led_count; ++i)
         set_pixel_color(i, c);
 }
-void LedStrip::configure(uint8_t id, uint8_t type, uint8_t pin, std::string name, uint16_t led_count, uint8_t animation, uint8_t animation_speed, bool pwr, Color base_color){
+void LedStrip::configure(uint8_t id, uint8_t type, uint8_t pin, char* name, uint16_t led_count, uint8_t animation, uint8_t animation_speed, bool pwr, Color base_color){
     LedStrip::id = id;
     LedStrip::pin = pin;
     LedStrip::name = name;
