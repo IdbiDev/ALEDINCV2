@@ -39,6 +39,7 @@ pico_sdk_init()
 
 file(GLOB_RECURSE SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/main.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/SettingsManager.cpp
     ${CMAKE_CURRENT_LIST_DIR}/connection/*.cpp
     ${CMAKE_CURRENT_LIST_DIR}/led/*.cpp
 )

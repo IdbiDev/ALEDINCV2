@@ -5,7 +5,7 @@ uint8_t LedStripManager::get_next_id(){
     {
         if(id_list[i] == false){
             id_list[i] = true;
-            return i
+            return i;
         }
     }
     return -1;

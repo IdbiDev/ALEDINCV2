@@ -24,6 +24,38 @@ LedStrip::~LedStrip() {
     release();
 }
 
+void LedStrip::serialize_to(LedStripSaveData& out) {
+    out.type = type;
+    out.pin = pin;
+    out.led_count = led_count;
+    out.animation_id = animation_id;
+    out.animation_speed = animation_speed;
+    out.power = power ? 1 : 0;
+    out.color[0] = color.r;
+    out.color[1] = color.g;
+    out.color[2] = color.b;
+    out.color[3] = color.a;
+
+    size_t len = strlen(name);
+    if (len > MAX_NAME_LEN) len = MAX_NAME_LEN;
+    out.name_length = static_cast<uint8_t>(len);
+    memcpy(out.name, name, len);
+    if (len < MAX_NAME_LEN) out.name[len] = '\0';
+}
+
+void LedStrip::deserialize_from(const LedStripSaveData& in) {
+    type = in.type;
+    pin = in.pin;
+    led_count = in.led_count;
+    animation_id = in.animation_id;
+    animation_speed = in.animation_speed;
+    power = in.power != 0;
+    color = { in.color[0], in.color[1], in.color[2], in.color[3] };
+
+    strncpy(name, in.name, in.name_length);
+    name[in.name_length] = '\0';
+}
+
 void LedStrip::release() {
     delete[] brightness_levels;
     delete[] dimmer_buffer;

@@ -1,9 +1,9 @@
 #pragma once
-#include <cstdint>
 #include "Utils.hpp"
 #include "hardware/dma.h"
 #include "hardware/pio.h"
 //#include <string>
+#include "FlashSaveFormat.hpp"
 
 class LedStrip{
 public:
@@ -40,6 +40,8 @@ public:
     void fill(Color color);
     void set_pixel_color(uint16_t pixel,Color color);
     void show(bool force);
+    void deserialize_from(const LedStripSaveData& in);
+    void serialize_to(LedStripSaveData& out);
 private:
     void allocate();
     void release();

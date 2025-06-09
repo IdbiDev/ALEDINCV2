@@ -1,8 +1,8 @@
 #pragma once
 #include <cstdint>
 #include "Utils.hpp"
-#include <string>
 #include "LedStrip.hpp"
+
 #define MAX_LED_AMOUNT 8
 
 class LedStripManager{
@@ -14,6 +14,4 @@ public:
     LedStrip led_strips[MAX_LED_AMOUNT];
 private:
     bool id_list[MAX_LED_AMOUNT];
-
-    
-}
+};
